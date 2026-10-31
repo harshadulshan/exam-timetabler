@@ -14,6 +14,8 @@ Simulated annealing with Kempe chains, seat limits, fixed and blocked sessions, 
 
 <img src="docs/banner.svg" alt="Animated banner: exams that share students (red lines) move into a calendar of exam sessions and every clash disappears" width="100%">
 
+<img src="docs/scoreboard.svg" alt="On 13 real benchmark problems: 78 of 78 runs valid, median gap to the best ever published 0.9% (best run), within 1% on 8 of 13, simulated annealing 13% lower penalty than hill climbing" width="100%">
+
 </div>
 
 ## 🎯 The problem
@@ -44,6 +46,14 @@ compared with the **best timetables ever published** for each (Ceschia et al. 20
 > published on 8 of the 13 problems; those records came from research methods running for far longer. The gap is largest
 > on the biggest problems: 3–5% on the three with 540–680 exams, and 14% on Purdue's 2,419 exams, which need longer runs.
 
+### Watch one run
+
+<img src="docs/convergence.svg" alt="Animated race on car91 (682 exams, 16,925 students): hill climbing stops improving after 2 s at 5.481; simulated annealing from the same start explores first, overtakes at 58 s and ends at 4.469, 5.4% above the best ever published" width="100%">
+
+Both searches start from the same timetable. Hill climbing only accepts improvements, so it is stuck after 2 seconds,
+29% above the record. Annealing deliberately accepts worse timetables while it is "hot", so for almost a minute its best
+does not move; as it cools it overtakes and ends 5.4% above the best ever published.
+
 ## 👩‍🎓 What it changes for students
 
 The app comes with a synthetic university to try it on: 5,290 students, 147 module exams, 4 faculties, 12 exam days,
@@ -53,11 +63,30 @@ The app comes with a synthetic university to try it on: 5,290 students, 147 modu
 
 ## 📸 The app
 
-| | |
-|---|---|
-| ![Data](docs/screenshots/01_data.png) | ![Sessions and rules](docs/screenshots/02_rules.png) |
-| ![Solving with live progress](docs/screenshots/03_solve.png) | ![Calendar timetable](docs/screenshots/04_timetable.png) |
-| ![Quality for students](docs/screenshots/05_quality.png) | ![Benchmark](docs/screenshots/06_benchmark.png) |
+<img src="docs/screenshots/00_app_timetable.png" alt="The demo university's exam timetable as a calendar: each chip is an exam with its number of students, seat use under every session, one blocked session; the sidebar shows a valid timetable with penalty 0.9616" width="100%">
+
+| **1 · Choose the data** | **See what makes it hard** |
+|:---:|:---:|
+| ![Data tab: load the demo university, a benchmark instance, or your own enrolments](docs/screenshots/01_data.png) | ![147 exams, 5,290 students, 27,477 exam sittings, 1,502 conflicting exam pairs, at least 17 sessions needed; exam sizes and shared students](docs/screenshots/07_data_stats.png) |
+| The demo university, one of the 13 benchmark problems, or your own enrolments (CSV, Excel, Toronto .crs/.stu) | 1,502 exam pairs share students, so at least 17 sessions are needed |
+| **2 · Sessions and what counts as too close** | **Hard session rules** |
+| ![Sessions and rules tab: exam period, sessions per day, seats, and penalty weights](docs/screenshots/02_rules.png) | ![Session rules: fixed to a session, not in a session, not before or after a day, and a feasibility check](docs/screenshots/08_session_rules.png) |
+| 12 exam days, two sessions a day, 1,500 seats; weights for same day, back to back, next day and two days apart | Fixed to a session, not in a session, not before or after a day, checked before solving |
+| **3 · Build the timetable** | **What changed for students** |
+| ![Solve tab: 0 clashes, seat limits and session rules met, penalty 0.9616 (39% below the start), 21.7 million moves](docs/screenshots/03_solve.png) | ![Students with two exams on one day 78 to 39, on consecutive days 1,599 to 666; penalty during the run](docs/screenshots/09_solve_result.png) |
+| 0 clashes, every rule met, penalty 0.9616 (−39%) after 21.7 M moves in 20 seconds | Two exams on one day: 78 → 39 students. Consecutive days: 1,599 → 666 |
+| **4 · Seats in every session** | **Every exam, and any student's own timetable** |
+| ![Students sitting in each session against the 1,500 seats; one session blocked](docs/screenshots/10_seats.png) | ![All exams with their session and date, a student's own timetable, CSV and Excel downloads](docs/screenshots/04_timetable.png) |
+| Students sitting each session against the seats; the blocked session stays empty | Filter exams, look up a student, download CSV or an Excel workbook |
+| **5 · Quality for students** | **Breaks and where the penalty comes from** |
+| ![Start vs optimised: students with two exams on one day, back to back, and on consecutive days](docs/screenshots/05_quality.png) | ![Shortest break between two of a student's exams, penalty by kind, and the exam pairs that cost the most](docs/screenshots/11_quality_breaks.png) |
+| First timetable vs optimised, student by student | Shortest breaks, penalty by kind, and the exam pairs that cost the most |
+| **6 · Benchmark: 13 real problems** | **Gap to the best ever published** |
+| ![Benchmark tab: 78 of 78 valid, median gap 0.9%, within 1% on 8 of 13, 13% lower than hill climbing, and the results table](docs/screenshots/06_benchmark.png) | ![Gap to the best known result for every run: annealing close to 0%, hill climbing far behind](docs/screenshots/12_benchmark_gap.png) |
+| The results above, problem by problem | One dot per run: annealing (blue) near the record, hill climbing (orange) far behind |
+
+<img src="docs/screenshots/13_convergence.png" alt="Convergence on car91 on a log time scale, against the best known result, and a box to start a live run on any instance" width="100%">
+<p align="center"><sub>Convergence for any instance on a log time scale, and a live run you can start yourself</sub></p>
 
 | Tab | What you do there |
 |---|---|
@@ -70,18 +99,9 @@ The app comes with a synthetic university to try it on: 5,290 students, 147 modu
 
 ## 🧠 How it works
 
-```mermaid
-flowchart LR
-    A["📥 Enrolments<br/>student × exam"] --> B["🕸️ Conflict graph<br/>exams sharing students"]
-    B --> C["🧱 Construction<br/>saturation degree"]
-    C -->|clashes left| D["🔧 Tabu repair"]
-    C --> E{"🔥 Simulated annealing<br/>Kempe chains + session swaps"}
-    D --> E
-    E --> F["✅ Independent check<br/>student by student"]
-    F --> G["📅 Timetable · Excel · .ics"]
-    G -->|"a session is lost"| H["🔁 Re-plan<br/>fewest changes"]
-    H --> E
-```
+<img src="docs/pipeline.svg" alt="Animated pipeline for the demo: enrolments (27,477 sittings, 5,290 students), conflicts (1,502 pairs), clash-free construction, annealing (21.7 million Kempe-chain moves), check (0 clashes), timetable (39% lower penalty; Excel, CSV, .ics); if a session is lost, re-plan with the fewest changes" width="100%">
+
+<img src="docs/kempe.svg" alt="Animated Kempe-chain move: exam A moves to Mon 14:00 and clashes with B and C, which swap to Mon 09:00; B then clashes with D, which swaps too; four exams move in one step and no clash remains" width="100%">
 
 | Idea | In plain words |
 |---|---|
