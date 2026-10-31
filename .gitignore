@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.nbi
+*.nbc
+.venv/
+venv/
+env/
+.env
+.streamlit/secrets.toml
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+*.log
+# benchmark files downloaded on demand
+data_cache/
